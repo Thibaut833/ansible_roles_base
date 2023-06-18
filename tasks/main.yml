@@ -1,0 +1,76 @@
+---
+# tasks file for base
+
+- name: J'installe zsh, git, wget, neovim, tmux, python3, pip
+  ansible.builtin.apt:
+    name:
+      - zsh
+      - git
+      - curl
+      - neovim
+      - tmux
+      - python3-full
+      - python3-pip
+      - python3-virtualenv
+    state: present
+
+- name: Je clone le repo ohmyzsh
+  ansible.builtin.git:
+    repo: https://github.com/ohmyzsh/ohmyzsh.git
+    dest: ~/.oh-my-zsh
+
+- name: Je check la conf zsh existante
+  block:
+    - name: Je regarde si zshrc existe
+      ansible.builtin.stat:
+        path: ~/.zshrc
+      register: zshrc_stat
+
+    - name: Je backup le zshrc existant
+      ansible.builtin.copy:
+        remote_src: true
+        src: ~/.zshrc
+        dest: ~/.zshrc.orig
+        mode: "770"
+      when: zshrc_stat.stat.exists
+
+- name: Je crée un nouveau fichier de configuration zsh
+  ansible.builtin.copy:
+    remote_src: true
+    src: ~/.oh-my-zsh/templates/zshrc.zsh-template
+    dest: ~/.zshrc
+    mode: "770"
+
+- name: Je définis le shell zsh
+  ansible.builtin.user:
+    user: root
+    shell: /usr/bin/zsh
+
+- name: J'installe les plugins zsh
+  block:
+    - name: Je télécharge le plugin zsh-autosuggestions
+      ansible.builtin.git:
+        repo: https://github.com/zsh-users/zsh-autosuggestions.git
+        dest: ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions
+
+    - name: Je télécharge le plugin zsh-syntax-highlighting
+      ansible.builtin.git:
+        repo: https://github.com/zsh-users/zsh-syntax-highlighting.git
+        dest: ~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting
+
+    - name: Je modifie la ligne des plugins dans zshrc
+      ansible.builtin.lineinfile:
+        path: ~/.zshrc
+        search_string: "plugins=(git)"
+        state: present
+        line: "plugins=(git zsh-autosuggestions zsh-syntax-highlighting pip kubectl helm)"
+
+- name: J'ajoute mes alias zsh
+  ansible.builtin.lineinfile:
+    path: ~/.zshrc
+    state: present
+    insertafter: EOF
+    line: "{{ item }}"
+  loop:
+    - "alias k='kubectl'"
+    - "alias nv='nvim'"
