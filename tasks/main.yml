@@ -1,6 +1,14 @@
 ---
 # tasks file for base
 
+- name: Je reboot la machine
+  ansible.builtin.reboot:
+
+- name: Je fais une mise à jour des paquets
+  ansible.builtin.apt:
+    update_cache: true
+    upgrade: full
+
 - name: J'installe zsh, git, wget, neovim, tmux, python3, pip
   ansible.builtin.apt:
     name:
@@ -13,7 +21,6 @@
       - python3-pip
       - python3-virtualenv
     state: present
-    force: true
 
 - name: Je clone le repo ohmyzsh
   ansible.builtin.git:
