@@ -1,10 +1,6 @@
 ---
 # tasks file for base
 
-- name: Je reboot la machine
-  ansible.builtin.reboot:
-    reboot_timeout: 900
-
 - name: J'installe zsh, git, wget, neovim, tmux, python3, pip
   ansible.builtin.apt:
     update_cache: true
